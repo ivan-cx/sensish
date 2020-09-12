@@ -133,7 +133,8 @@ int main() {
 
   // Our state
   ImVec4 clear_color = ImVec4(0.45f, 0.45f, 0.50f, 1.00f);
-  auto currentPath{getDefaultWorkingDirectory()};
+  std::filesystem::path currentDirPath{getDefaultWorkingDirectory()};
+  std::filesystem::path filePath{};
 
   // Main loop
   while (!glfwWindowShouldClose(window)) {
@@ -154,7 +155,11 @@ int main() {
     ImGui::NewFrame();
 
     // Application logic here:
-    const auto filePath = openFile(currentPath);
+    if (filePath == "")
+      filePath = openFile(currentDirPath);
+
+    if (filePath != "") {
+    }
 
     // Rendering
     ImGui::Render();
