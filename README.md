@@ -20,8 +20,8 @@ If you you'd like to support development for other platforms, feel free to conta
 ## Decision making
 
 "So long as I build for myself, the patterns I use will be 
-simple, and human, and full of feeling, because I under- 
-stand my situation. But as soon as a few people begin to 
+simple, and human, and full of feeling, because I understand
+my situation. But as soon as a few people begin to 
 build for "the many", their patterns about what is needed 
 become abstract; no matter how well meaning they are, 
 their ideas gradually get out of touch with reality, because 
