@@ -16,11 +16,17 @@ std::filesystem::path openFile(std::filesystem::path &currentBrowsePath) {
     } else {
       auto extension = entry.path().extension();
       if (!strcmp(extension.c_str(), ".tiff") ||
+          !strcmp(extension.c_str(), ".tif") ||
           !strcmp(extension.c_str(), ".png") ||
           !strcmp(extension.c_str(), ".jpg") ||
           !strcmp(extension.c_str(), ".jpeg") ||
-          !strcmp(extension.c_str(), ".bmp") ||
-          !strcmp(extension.c_str(), ".tif")) {
+          !strcmp(extension.c_str(), ".tga") ||
+          !strcmp(extension.c_str(), ".gif") ||
+          !strcmp(extension.c_str(), ".pic") ||
+          !strcmp(extension.c_str(), ".pgm") ||
+          !strcmp(extension.c_str(), ".ppm") ||
+          !strcmp(extension.c_str(), ".psd") ||
+          !strcmp(extension.c_str(), ".bmp")) {
         files.emplace_back(entry.path());
       }
     }
@@ -33,13 +39,13 @@ std::filesystem::path openFile(std::filesystem::path &currentBrowsePath) {
   // draw:
   {
     ImVec2 winSize = ImGui::GetIO().DisplaySize;
+    winSize.x *= 0.9;
+    winSize.y *= 0.9;
+    ImGui::SetNextWindowSize(std::move(winSize), ImGuiCond_Once);
+    winSize = ImGui::GetIO().DisplaySize;
     winSize.x /= 2;
     winSize.y /= 2;
     ImGui::SetNextWindowPos(std::move(winSize), ImGuiCond_Once, {0.5, 0.5});
-    // winSize = ImGui::GetIO().DisplaySize;
-    // winSize.x *= 0.9;
-    // winSize.y *= 0.9;
-    // ImGui::SetNextWindowSize(std::move(winSize), ImGuiCond_Once);
   }
   if (ImGui::Begin("Select image")) {
 

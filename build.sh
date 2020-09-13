@@ -29,13 +29,19 @@ optimization_flags="-O0 -g3 -fno-inline"
 # -fcf-protection=full -fsanitize=address #-fsanitize=leak #-fsanitize=thread 
 
 syntax_flags="-Wall -Wstrict-aliasing -Werror -Wformat -Wpedantic -std=c++17"
-include_files=" -Isrc -Ilibs/gl3w -Ilibs/imgui -Ilibs/imgui/examples"
+include_files=" -Isrc -Ilibs/gl3w -Ilibs/stb -Ilibs/imgui -Ilibs/imgui/examples"
 
 g++ -c src/main.cpp $include_files $definitions $syntax_flags $optimization_flags
 check_error $? "to compile src/main.cpp"
 
 g++ -c src/open_file.cpp $include_files $definitions $syntax_flags $optimization_flags
 check_error $? "to compile src/open_file.cpp"
+
+g++ -c src/texture.cpp $include_files $definitions $syntax_flags $optimization_flags
+check_error $? "to compile src/texture.cpp"
+
+g++ -c src/stb.cpp $include_files $definitions $optimization_flags
+check_error $? "to compile src/stb.cpp"
 
 gcc -c libs/gl3w/GL/gl3w.c $include_files $definitions $optimization_flags
 check_error $? "to compile libs/gl3w/GL/gl3w.c"

@@ -41,7 +41,10 @@ using namespace gl;
 #pragma comment(lib, "legacy_stdio_definitions")
 #endif
 
+#include <stb_image.h>
+
 #include "open_file.h"
+#include "texture.h"
 
 static void glfw_error_callback(int error, const char* description)
 {
@@ -62,12 +65,14 @@ int main() {
   // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+
   // only glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+
   // only
-
-  // get size of available screen area:
-  int x, y, width, height;
-  glfwGetMonitorWorkarea(glfwGetPrimaryMonitor(), &x, &y, &width, &height);
-  // Create window with graphics context
-  GLFWwindow *window = glfwCreateWindow(width, height, "sensish", NULL, NULL);
+  GLFWwindow *window;
+  {
+    // get size of available screen area:
+    int x, y, width, height;
+    glfwGetMonitorWorkarea(glfwGetPrimaryMonitor(), &x, &y, &width, &height);
+    // Create window with graphics context
+    window = glfwCreateWindow(width, height, "sensish", NULL, NULL);
+  }
   if (window == NULL)
     return 1;
   glfwMakeContextCurrent(window);
@@ -132,9 +137,12 @@ int main() {
   // NULL, io.Fonts->GetGlyphRangesJapanese()); IM_ASSERT(font != NULL);
 
   // Our state
-  ImVec4 clear_color = ImVec4(0.45f, 0.45f, 0.50f, 1.00f);
+  ImVec4 clearColor = ImVec4(0.45f, 0.45f, 0.50f, 1.00f);
   std::filesystem::path currentDirPath{getDefaultWorkingDirectory()};
   std::filesystem::path filePath{};
+  int x, y, n;
+  unsigned char *textureData;
+  Texture tex;
 
   // Main loop
   while (!glfwWindowShouldClose(window)) {
@@ -159,6 +167,14 @@ int main() {
       filePath = openFile(currentDirPath);
 
     if (filePath != "") {
+      if (textureData == nullptr) {
+        textureData = stbi_load(filePath.c_str(), &x, &y, &n, 0);
+        if (textureData) {
+          tex = createTexture(textureData, x, y, n);
+        }
+      }
+    }
+    if (textureData) {
     }
 
     // Rendering
@@ -166,7 +182,7 @@ int main() {
     int display_w, display_h;
     glfwGetFramebufferSize(window, &display_w, &display_h);
     glViewport(0, 0, display_w, display_h);
-    glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
+    glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
     glClear(GL_COLOR_BUFFER_BIT);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
