@@ -3,7 +3,7 @@
 struct Texture {
   int width = 0;
   int height = 0;
-  GLuint glTextureID = 0;
+  GLuint id = 0;
 };
 
 Texture createTexture(unsigned char *data, int x, int y, int channels);

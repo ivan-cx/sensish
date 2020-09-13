@@ -3,34 +3,27 @@
 #include <GLFW/glfw3.h>
 #include <assert.h>
 
-void deleteTexture(const Texture &tex) {
-  glDeleteTextures(1, &tex.glTextureID);
-}
+void deleteTexture(const Texture &tex) { glDeleteTextures(1, &tex.id); }
 
 Texture createTexture(unsigned char *data, int x, int y, int channels) {
   Texture result{};
   result.width = x;
   result.height = y;
-  glGenTextures(1, &result.glTextureID);
-  glBindTexture(GL_TEXTURE_2D, result.glTextureID);
+  glGenTextures(1, &result.id);
+  glBindTexture(GL_TEXTURE_2D, result.id);
   // disable filtering of the texture, user can see "raw" image:
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-  // check if we can use 4-byte alignment
-  const bool alignedBy4 = !(channels & 3);
-  // use fast 4-byte alignment if possible
-  glPixelStorei(GL_UNPACK_ALIGNMENT, alignedBy4 ? 4 : 1);
+  glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 
   GLint internalFormat{};
   GLenum inputFormat{};
-  GLenum inputType{};
 
   switch (channels) {
   case 1: {
     internalFormat = GL_R8;
     inputFormat = GL_RED;
-    inputType = GL_UNSIGNED_BYTE;
     GLint swizzleMask[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
     glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
     break;
@@ -38,7 +31,6 @@ Texture createTexture(unsigned char *data, int x, int y, int channels) {
   case 2: {
     internalFormat = GL_RG8;
     inputFormat = GL_RG;
-    inputType = GL_UNSIGNED_BYTE;
     GLint swizzleMask[] = {GL_RED, GL_RED, GL_RED, GL_GREEN};
     glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
     break;
@@ -46,13 +38,11 @@ Texture createTexture(unsigned char *data, int x, int y, int channels) {
   case 3: {
     internalFormat = GL_RGB8;
     inputFormat = GL_RGB;
-    inputType = GL_UNSIGNED_BYTE;
     break;
   }
   case 4: {
     internalFormat = GL_RGBA8;
     inputFormat = GL_RGBA;
-    inputType = GL_UNSIGNED_BYTE;
     break;
   }
   default:
@@ -70,7 +60,7 @@ Texture createTexture(unsigned char *data, int x, int y, int channels) {
           GLenum type, - input data type
           const void * data); */
   glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, result.width, result.height, 0,
-               inputFormat, inputType, data);
+               inputFormat, GL_UNSIGNED_BYTE, data);
 
   return result;
 }

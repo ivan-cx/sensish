@@ -175,6 +175,7 @@ int main() {
       }
     }
     if (textureData) {
+      ImGui::Image((void *)(intptr_t)tex.id, ImVec2(x, y));
     }
 
     // Rendering
