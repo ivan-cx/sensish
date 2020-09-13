@@ -131,7 +131,11 @@ int main() {
   // - Remember that in C/C++ if you want to include a backslash \ in a string
   // literal you need to write a double backslash \\ !
   // io.Fonts->AddFontDefault();
-  io.Fonts->AddFontFromFileTTF("./fonts/Cousine-Regular.ttf", 28.0f);
+  {
+    ImFontAtlas helper;
+    io.Fonts->AddFontFromFileTTF("./fonts/Roboto-Medium.ttf", 28.0f, NULL,
+                                 helper.GetGlyphRangesCyrillic());
+  }
   // ImFont* font =
   // io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f,
   // NULL, io.Fonts->GetGlyphRangesJapanese()); IM_ASSERT(font != NULL);
@@ -140,9 +144,12 @@ int main() {
   ImVec4 clearColor = ImVec4(0.45f, 0.45f, 0.50f, 1.00f);
   std::filesystem::path currentDirPath{getDefaultWorkingDirectory()};
   std::filesystem::path filePath{};
-  int x, y, n;
-  unsigned char *textureData;
+  int width, height, channels;
+  unsigned char *textureData = nullptr;
   Texture tex;
+
+  const int TEXT_BUF_SIZE = 1024;
+  char text[3][TEXT_BUF_SIZE]{0};
 
   // Main loop
   while (!glfwWindowShouldClose(window)) {
@@ -168,14 +175,24 @@ int main() {
 
     if (filePath != "") {
       if (textureData == nullptr) {
-        textureData = stbi_load(filePath.c_str(), &x, &y, &n, 0);
+        textureData =
+            stbi_load(filePath.c_str(), &width, &height, &channels, 0);
         if (textureData) {
-          tex = createTexture(textureData, x, y, n);
+          tex = createTexture(textureData, width, height, channels);
         }
       }
     }
     if (textureData) {
-      ImGui::Image((void *)(intptr_t)tex.id, ImVec2(x, y));
+      if (ImGui::Begin("Document")) {
+        ImGui::Image((void *)(intptr_t)tex.id, ImVec2(width, height));
+      }
+      ImGui::End();
+      if (ImGui::Begin("Process")) {
+        ImGui::InputText("Text #1", text[0], TEXT_BUF_SIZE);
+        ImGui::InputText("Text #2", text[1], TEXT_BUF_SIZE);
+        ImGui::InputText("Text #3", text[2], TEXT_BUF_SIZE);
+      }
+      ImGui::End();
     }
 
     // Rendering
