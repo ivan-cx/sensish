@@ -7,4 +7,4 @@ struct Texture {
 };
 
 Texture createTexture(unsigned char *data, int x, int y, int channels);
-void displayTexture(Texture texture);
+void deleteTexture(const Texture &tex);

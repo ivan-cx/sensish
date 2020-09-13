@@ -40,6 +40,9 @@ check_error $? "to compile src/open_file.cpp"
 g++ -c src/texture.cpp $include_files $definitions $syntax_flags $optimization_flags
 check_error $? "to compile src/texture.cpp"
 
+g++ -c src/text.cpp $include_files $definitions $syntax_flags $optimization_flags
+check_error $? "to compile src/text.cpp"
+
 g++ -c src/stb.cpp $include_files $definitions $optimization_flags
 check_error $? "to compile src/stb.cpp"
 

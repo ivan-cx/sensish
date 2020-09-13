@@ -44,6 +44,7 @@ using namespace gl;
 #include <stb_image.h>
 
 #include "open_file.h"
+#include "text.h"
 #include "texture.h"
 
 static void glfw_error_callback(int error, const char* description)
@@ -133,8 +134,10 @@ int main() {
   // io.Fonts->AddFontDefault();
   {
     ImFontAtlas helper;
-    io.Fonts->AddFontFromFileTTF("./fonts/Roboto-Medium.ttf", 28.0f, NULL,
+#define FONT "./fonts/Roboto-Medium.ttf"
+    io.Fonts->AddFontFromFileTTF(FONT, 28.0f, NULL,
                                  helper.GetGlyphRangesCyrillic());
+    watermark_init_font(FONT);
   }
   // ImFont* font =
   // io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f,
@@ -145,11 +148,11 @@ int main() {
   std::filesystem::path currentDirPath{getDefaultWorkingDirectory()};
   std::filesystem::path filePath{};
   int width, height, channels;
-  unsigned char *textureData = nullptr;
+  unsigned char *sourceTextureData = nullptr;
+  unsigned char *workingTextureData = nullptr;
   Texture tex;
 
-  const int TEXT_BUF_SIZE = 1024;
-  char text[3][TEXT_BUF_SIZE]{0};
+  WatermarkText wmText;
 
   // Main loop
   while (!glfwWindowShouldClose(window)) {
@@ -174,23 +177,35 @@ int main() {
       filePath = openFile(currentDirPath);
 
     if (filePath != "") {
-      if (textureData == nullptr) {
-        textureData =
+      if (sourceTextureData == nullptr) {
+        sourceTextureData =
             stbi_load(filePath.c_str(), &width, &height, &channels, 0);
-        if (textureData) {
-          tex = createTexture(textureData, width, height, channels);
+        if (sourceTextureData) {
+          tex = createTexture(sourceTextureData, width, height, channels);
+          workingTextureData =
+              (unsigned char *)malloc(width * height * channels);
         }
       }
     }
-    if (textureData) {
+    if (sourceTextureData) {
       if (ImGui::Begin("Document")) {
         ImGui::Image((void *)(intptr_t)tex.id, ImVec2(width, height));
       }
       ImGui::End();
       if (ImGui::Begin("Process")) {
-        ImGui::InputText("Text #1", text[0], TEXT_BUF_SIZE);
-        ImGui::InputText("Text #2", text[1], TEXT_BUF_SIZE);
-        ImGui::InputText("Text #3", text[2], TEXT_BUF_SIZE);
+        ImGui::InputText("Watermark Text #1", wmText.lines[0], TEXT_LINE_SIZE);
+        ImGui::InputText("Watermark Text #2", wmText.lines[1], TEXT_LINE_SIZE);
+        ImGui::InputText("Watermark Text #3", wmText.lines[2], TEXT_LINE_SIZE);
+        // TODO font size
+        // TODO font transparency
+        if (ImGui::Button("Apply")) {
+          deleteTexture(tex);
+          memcpy(workingTextureData, sourceTextureData,
+                 width * height * channels);
+          watermark_draw_text(workingTextureData, width, height, wmText);
+          // TODO render text
+          tex = createTexture(workingTextureData, width, height, channels);
+        }
       }
       ImGui::End();
     }
@@ -206,6 +221,9 @@ int main() {
 
     glfwSwapBuffers(window);
   }
+
+  stbi_image_free(sourceTextureData);
+  free(workingTextureData);
 
   // Cleanup
   ImGui_ImplOpenGL3_Shutdown();
