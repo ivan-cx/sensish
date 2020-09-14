@@ -202,7 +202,8 @@ int main() {
           deleteTexture(tex);
           memcpy(workingTextureData, sourceTextureData,
                  width * height * channels);
-          watermark_draw_text(workingTextureData, width, height, wmText);
+          watermark_draw_text(workingTextureData, width, height, channels,
+                              wmText);
           // TODO render text
           tex = createTexture(workingTextureData, width, height, channels);
         }
