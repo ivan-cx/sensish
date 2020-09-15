@@ -1,13 +1,31 @@
 # sensish
 
-Prototype of the "Sensitive Share" tool for [DemHack](https://demhack.ru/), 12-13 September, 2020. Made by one person, Ivan Kuznetsov, not a member of any teams.
+Tool to add dense watermarks to images, made for [DemHack](https://demhack.ru/) in September, 2020. (c) Ivan Kuznetsov (not a member of any team at DemHack)
+
+# TODO
+
+ - [x] add IMGUI
+ - [x] publish on github
+ - [x] load image
+ - [x] display image
+ - [x] add simple watermark
+ - [x] save image with watermark on disk
+ - [ ] text input to change output filename
+ - [ ] slider to change size of image
+ - [ ] select font file (only ttf fonts)
+ - [ ] integer input to change font size
+ - [ ] color picker to change color of the watermark
+
+
+## Project status
+
+This is technical proof-of-concept, as you can see from TODO list above.
+Unfortunately, I do not have free time to continue work on the project. 
 
 
 ## Platform
 
 x86-64 GNU/Linux (Ubuntu)
-
-If you you'd like to support development for other platforms, feel free to contact i@ivn.cx
 
 
 ## Instructions
@@ -15,18 +33,5 @@ If you you'd like to support development for other platforms, feel free to conta
 1. ```sudo setup.sh``` will get you all the prerequisites
 2. ```build.sh``` will build and run the program
 3. ```./sensish``` will run the program
-
-
-## Decision making
-
-"So long as I build for myself, the patterns I use will be 
-simple, and human, and full of feeling, because I understand
-my situation. But as soon as a few people begin to 
-build for "the many", their patterns about what is needed 
-become abstract; no matter how well meaning they are, 
-their ideas gradually get out of touch with reality, because 
-they are not faced daily with the living examples of what 
-the patterns say. " THE TIMELESS WAY OF BUILDING by Christopher Alexander
-
 
 
