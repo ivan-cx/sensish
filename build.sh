@@ -19,10 +19,10 @@ check_error() {
 # Compilation:
 
 # Release:
-#optimization_flags="-O3"
+# optimization_flags="-O3"
 
 # Debug:
-optimization_flags="-O0 -g3 -fno-inline"
+optimization_flags="-Og -g3 -fno-inline"
 
 # Could be useful:
 # -fstack-protector-all -fstrict-aliasing -fsanitize=undefined
@@ -43,7 +43,7 @@ check_error $? "to compile src/texture.cpp"
 g++ -c src/text.cpp $include_files $definitions $syntax_flags $optimization_flags
 check_error $? "to compile src/text.cpp"
 
-g++ -c src/stb.cpp $include_files $definitions $optimization_flags
+g++ -c src/stb.cpp $include_files $definitions $optimization_flags -w
 check_error $? "to compile src/stb.cpp"
 
 gcc -c libs/gl3w/GL/gl3w.c $include_files $definitions $optimization_flags

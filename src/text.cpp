@@ -56,11 +56,12 @@ void watermark_init_font(const char *filename) {
 
   fontBuffer = (unsigned char *)malloc(size);
 
-  fread(fontBuffer, size, 1, fontFile);
+  const size_t items_read = fread(fontBuffer, size, 1, fontFile);
   fclose(fontFile);
 
   /* prepare font */
-  if (!stbtt_InitFont(&info, fontBuffer,
+  if (!items_read ||
+      !stbtt_InitFont(&info, fontBuffer,
                       stbtt_GetFontOffsetForIndex(fontBuffer, 0))) {
     printf("failed to load font file: %s\n", filename);
     return;
