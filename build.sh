@@ -19,10 +19,10 @@ check_error() {
 # Compilation:
 
 # Release:
-# optimization_flags="-O3"
+optimization_flags="-O3"
 
 # Debug:
-optimization_flags="-Og -g3 -fno-inline"
+# optimization_flags="-Og -g3 -fno-inline"
 
 # Could be useful:
 # -fstack-protector-all -fstrict-aliasing -fsanitize=undefined
