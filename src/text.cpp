@@ -32,39 +32,43 @@
 #include <stdlib.h>
 
 #define STB_TRUETYPE_IMPLEMENTATION
-static unsigned char *fontBuffer;
+static unsigned char *fontBuffer = nullptr;
 static stbtt_fontinfo info;
 
 void watermark_init_font(const char *filename) {
-  long size;
+  if (fontBuffer == nullptr) {
+    long size;
 
-  FILE *fontFile = fopen(filename, "rb");
+    FILE *fontFile = fopen(filename, "rb");
 
-  if (!fontFile) {
-    printf("failed to load font file: %s\n", filename);
-    return;
-  }
+    if (!fontFile) {
+      printf("failed to load font file: %s\n", filename);
+      return;
+    }
 
-  fseek(fontFile, 0, SEEK_END);
-  size = ftell(fontFile);       /* how long is the file ? */
-  fseek(fontFile, 0, SEEK_SET); /* reset */
+    fseek(fontFile, 0, SEEK_END);
+    size = ftell(fontFile);       /* how long is the file ? */
+    fseek(fontFile, 0, SEEK_SET); /* reset */
 
-  if (size <= 0) {
-    printf("failed to load font file: %s\n", filename);
-    return;
-  }
+    if (size <= 0) {
+      printf("failed to load font file: %s\n", filename);
+      return;
+    }
 
-  fontBuffer = (unsigned char *)malloc(size);
+    if (fontBuffer != nullptr)
+      free(fontBuffer);
+    fontBuffer = (unsigned char *)malloc(size);
 
-  const size_t items_read = fread(fontBuffer, size, 1, fontFile);
-  fclose(fontFile);
+    const size_t items_read = fread(fontBuffer, size, 1, fontFile);
+    fclose(fontFile);
 
-  /* prepare font */
-  if (!items_read ||
-      !stbtt_InitFont(&info, fontBuffer,
-                      stbtt_GetFontOffsetForIndex(fontBuffer, 0))) {
-    printf("failed to load font file: %s\n", filename);
-    return;
+    /* prepare font */
+    if (!items_read ||
+        !stbtt_InitFont(&info, fontBuffer,
+                        stbtt_GetFontOffsetForIndex(fontBuffer, 0))) {
+      printf("failed to load font file: %s\n", filename);
+      return;
+    }
   }
 }
 
@@ -78,53 +82,71 @@ void watermark_draw_text(unsigned char *texture, int width, int height,
   /* calculate font scaling */
   float scale = stbtt_ScaleForPixelHeight(&info, l_h);
 
-  stb__wchar codepoints[TEXT_LINE_SIZE];
-  // TODO all 3 lines:
-  stb_from_utf8(codepoints, text.lines[0], TEXT_LINE_SIZE);
 
   int x = 0;
+  int base_y = 0;
 
   int ascent, descent, lineGap;
   stbtt_GetFontVMetrics(&info, &ascent, &descent, &lineGap);
 
   ascent = roundf(ascent * scale);
   descent = roundf(descent * scale);
-  size_t i = 0;
-  while (codepoints[i] != 0) {
-    /* how wide is this character */
-    int ax;
-    int lsb;
-    stbtt_GetCodepointHMetrics(&info, codepoints[i], &ax, &lsb);
 
-    /* get bounding box for character (may be offset to account for chars that
-     * dip above or below the line */
-    int c_x1, c_y1, c_x2, c_y2;
-    stbtt_GetCodepointBitmapBox(&info, codepoints[i], scale, scale, &c_x1,
-                                &c_y1, &c_x2, &c_y2);
+  stb__wchar codepoints[TEXT_LINE_SIZE];
 
-    /* compute y (different characters have different heights */
-    int y = ascent + c_y1;
+  unsigned short line = 0;
+  while (base_y + l_h < height) {
+    stb_from_utf8(codepoints, text.lines[line % TEXT_LINES_COUNT],
+                  TEXT_LINE_SIZE);
+    size_t i = 0;
+    while (codepoints[i] != 0) {
+      /* how wide is this character */
+      int ax;
+      int lsb;
+      stbtt_GetCodepointHMetrics(&info, codepoints[i], &ax, &lsb);
+      if (x + roundf(ax * scale) >= width) {
+        x = 0;
+        base_y += l_h;
+        if (base_y + l_h >= height) {
+          break;
+        }
+      }
+      /* get bounding box for character (may be offset to account for chars that
+       * dip above or below the line */
+      int c_x1, c_y1, c_x2, c_y2;
+      stbtt_GetCodepointBitmapBox(&info, codepoints[i], scale, scale, &c_x1,
+                                  &c_y1, &c_x2, &c_y2);
 
-    /* render character (stride and offset is important here) */
-    int byteOffset = x + roundf(lsb * scale) + (y * width);
-    stbtt_MakeCodepointBitmap(&info, bitmap + byteOffset, c_x2 - c_x1,
-                              c_y2 - c_y1, width, scale, scale, codepoints[i]);
+      /* compute y (different characters have different heights */
+      int y = base_y + ascent + c_y1;
 
-    /* advance x */
-    x += roundf(ax * scale);
+      /* render character (stride and offset is important here) */
+      int byteOffset = x + roundf(lsb * scale) + (y * width);
+      stbtt_MakeCodepointBitmap(&info, bitmap + byteOffset, c_x2 - c_x1,
+                                c_y2 - c_y1, width, scale, scale,
+                                codepoints[i]);
 
-    /* add kerning */
-    int kern;
-    kern =
-        stbtt_GetCodepointKernAdvance(&info, codepoints[i], codepoints[i + 1]);
-    x += roundf(kern * scale);
-    ++i;
+      /* advance x */
+      x += roundf(ax * scale);
+
+      /* add kerning */
+      int kern;
+      kern = stbtt_GetCodepointKernAdvance(&info, codepoints[i],
+                                           codepoints[i + 1]);
+      x += roundf(kern * scale);
+      ++i;
+    }
+    ++line;
   }
 
   const size_t pixel_count = width * height;
   for (size_t i = 0; i < pixel_count; ++i) {
-    if (bitmap[i])
+    if (bitmap[i]) {
+      // TODO color selection
       texture[i * channels] = 0xFF;
+      texture[i * channels + 1] = 0x11;
+      texture[i * channels + 2] = 0x11;
+    }
   }
 
   free(bitmap);
