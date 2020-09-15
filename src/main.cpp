@@ -42,6 +42,7 @@ using namespace gl;
 #endif
 
 #include <stb_image.h>
+#include <stb_image_write.h>
 
 #include "open_file.h"
 #include "text.h"
@@ -50,6 +51,24 @@ using namespace gl;
 static void glfw_error_callback(int error, const char* description)
 {
     fprintf(stderr, "Glfw Error %d: %s\n", error, description);
+}
+
+struct Graphics {
+  Texture tex;
+  unsigned char *workingTextureData = nullptr;
+  unsigned char *sourceTextureData = nullptr;
+  int channels = 0;
+};
+
+void applyWatermark(Graphics &graphics, const WatermarkText &wmText) {
+  deleteTexture(graphics.tex);
+  memcpy(graphics.workingTextureData, graphics.sourceTextureData,
+         graphics.tex.width * graphics.tex.height * graphics.channels);
+  watermark_draw_text(graphics.workingTextureData, graphics.tex.width,
+                      graphics.tex.height, graphics.channels, wmText);
+  // TODO render text
+  graphics.tex = createTexture(graphics.workingTextureData, graphics.tex.width,
+                               graphics.tex.height, graphics.channels);
 }
 
 int main() {
@@ -147,10 +166,8 @@ int main() {
   ImVec4 clearColor = ImVec4(0.45f, 0.45f, 0.50f, 1.00f);
   std::filesystem::path currentDirPath{getDefaultWorkingDirectory()};
   std::filesystem::path filePath{};
-  int width, height, channels;
-  unsigned char *sourceTextureData = nullptr;
-  unsigned char *workingTextureData = nullptr;
-  Texture tex;
+  int width, height;
+  Graphics gfx;
 
   WatermarkText wmText;
 
@@ -177,19 +194,20 @@ int main() {
       filePath = openFile(currentDirPath);
 
     if (filePath != "") {
-      if (sourceTextureData == nullptr) {
-        sourceTextureData =
-            stbi_load(filePath.c_str(), &width, &height, &channels, 0);
-        if (sourceTextureData) {
-          tex = createTexture(sourceTextureData, width, height, channels);
-          workingTextureData =
-              (unsigned char *)malloc(width * height * channels);
+      if (gfx.sourceTextureData == nullptr) {
+        gfx.sourceTextureData =
+            stbi_load(filePath.c_str(), &width, &height, &gfx.channels, 0);
+        if (gfx.sourceTextureData) {
+          gfx.tex =
+              createTexture(gfx.sourceTextureData, width, height, gfx.channels);
+          gfx.workingTextureData =
+              (unsigned char *)malloc(width * height * gfx.channels);
         }
       }
     }
-    if (sourceTextureData) {
+    if (gfx.sourceTextureData) {
       if (ImGui::Begin("Document")) {
-        ImGui::Image((void *)(intptr_t)tex.id, ImVec2(width, height));
+        ImGui::Image((void *)(intptr_t)gfx.tex.id, ImVec2(width, height));
       }
       ImGui::End();
       if (ImGui::Begin("Process")) {
@@ -199,13 +217,13 @@ int main() {
         // TODO font size
         // TODO font transparency
         if (ImGui::Button("Apply")) {
-          deleteTexture(tex);
-          memcpy(workingTextureData, sourceTextureData,
-                 width * height * channels);
-          watermark_draw_text(workingTextureData, width, height, channels,
-                              wmText);
-          // TODO render text
-          tex = createTexture(workingTextureData, width, height, channels);
+          applyWatermark(gfx, wmText);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Save")) {
+          applyWatermark(gfx, wmText);
+          stbi_write_png("output.png", width, height, gfx.channels,
+                         gfx.workingTextureData, width * gfx.channels);
         }
       }
       ImGui::End();
@@ -223,8 +241,8 @@ int main() {
     glfwSwapBuffers(window);
   }
 
-  stbi_image_free(sourceTextureData);
-  free(workingTextureData);
+  stbi_image_free(gfx.sourceTextureData);
+  free(gfx.workingTextureData);
 
   // Cleanup
   ImGui_ImplOpenGL3_Shutdown();

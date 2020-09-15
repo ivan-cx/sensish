@@ -1,4 +1,6 @@
 *.o
 *.swp
+*.png
 sensish
 imgui.ini
+
