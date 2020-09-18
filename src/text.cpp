@@ -73,7 +73,8 @@ void watermark_init_font(const char *filename) {
 }
 
 void watermark_draw_text(unsigned char *texture, int width, int height,
-                         int channels, const WatermarkText &text) {
+                         int channels, const WatermarkText &text,
+                         float color[4]) {
   int l_h = 32;
   /* create a bitmap for the phrase */
   unsigned char *bitmap =
@@ -140,12 +141,15 @@ void watermark_draw_text(unsigned char *texture, int width, int height,
   }
 
   const size_t pixel_count = width * height;
+  const unsigned char rChan = 0xFF * color[0];
+  const unsigned char gChan = 0xFF * color[1];
+  const unsigned char bChan = 0xFF * color[2];
   for (size_t i = 0; i < pixel_count; ++i) {
     if (bitmap[i]) {
-      // TODO color selection
-      texture[i * channels] = 0xFF;
-      texture[i * channels + 1] = 0x11;
-      texture[i * channels + 2] = 0x11;
+      size_t first = i * channels;
+      texture[first] = rChan;
+      texture[first + 1] = gChan;
+      texture[first + 2] = bChan;
     }
   }
 
