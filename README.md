@@ -13,7 +13,7 @@ Tool to add dense watermarks to images, made for [DemHack](https://demhack.ru/) 
  - [ ] text input to change output filename
  - [ ] slider to change size of image
  - [ ] select font file (only ttf fonts)
- - [ ] integer input to change font size
+ - [x] integer input to change font size
  - [x] color picker to change color of the watermark
 
 

@@ -61,12 +61,13 @@ struct Graphics {
 };
 
 void applyWatermark(Graphics &graphics, const WatermarkText &wmText,
-                    float wmColor[4]) {
+                    float wmColor[4], int wmLetterHeight) {
   deleteTexture(graphics.tex);
   memcpy(graphics.workingTextureData, graphics.sourceTextureData,
          graphics.tex.width * graphics.tex.height * graphics.channels);
   watermark_draw_text(graphics.workingTextureData, graphics.tex.width,
-                      graphics.tex.height, graphics.channels, wmText, wmColor);
+                      graphics.tex.height, graphics.channels, wmText, wmColor,
+                      wmLetterHeight);
   // TODO render text
   graphics.tex = createTexture(graphics.workingTextureData, graphics.tex.width,
                                graphics.tex.height, graphics.channels);
@@ -172,6 +173,7 @@ int main() {
 
   WatermarkText wmText;
   float wmColor[4]{1.0, 0.1, 0.1, 1.0};
+  int wmLetterHeight = 32;
 
   // Main loop
   while (!glfwWindowShouldClose(window)) {
@@ -217,13 +219,14 @@ int main() {
         ImGui::InputText("Watermark Text #2", wmText.lines[1], TEXT_LINE_SIZE);
         ImGui::InputText("Watermark Text #3", wmText.lines[2], TEXT_LINE_SIZE);
         ImGui::ColorEdit4("Watermark color", wmColor);
+        ImGui::InputInt("Letter height in pixels", &wmLetterHeight, 1, 5);
         // TODO font size
         if (ImGui::Button("Apply")) {
-          applyWatermark(gfx, wmText, wmColor);
+          applyWatermark(gfx, wmText, wmColor, wmLetterHeight);
         }
         ImGui::SameLine();
         if (ImGui::Button("Save")) {
-          applyWatermark(gfx, wmText, wmColor);
+          applyWatermark(gfx, wmText, wmColor, wmLetterHeight);
           stbi_write_png("output.png", width, height, gfx.channels,
                          gfx.workingTextureData, width * gfx.channels);
         }

@@ -74,8 +74,7 @@ void watermark_init_font(const char *filename) {
 
 void watermark_draw_text(unsigned char *texture, int width, int height,
                          int channels, const WatermarkText &text,
-                         float color[4]) {
-  int l_h = 32;
+                         float color[4], int l_h) {
   /* create a bitmap for the phrase */
   unsigned char *bitmap =
       (unsigned char *)calloc(width * height, sizeof(unsigned char));
