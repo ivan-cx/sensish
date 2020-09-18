@@ -172,8 +172,10 @@ int main() {
   Graphics gfx;
 
   WatermarkText wmText;
-  float wmColor[4]{1.0, 0.1, 0.1, 1.0};
-  int wmLetterHeight = 32;
+  float wmColor[4]{0.8, 0.1, 0.1, 1.0};
+  int wmLetterHeight = 64;
+#define OUTPUT_FILENAME_BUF_SIZE 1024
+  char outputFilename[OUTPUT_FILENAME_BUF_SIZE] = {0};
 
   // Main loop
   while (!glfwWindowShouldClose(window)) {
@@ -199,6 +201,8 @@ int main() {
 
     if (filePath != "") {
       if (gfx.sourceTextureData == nullptr) {
+        snprintf(outputFilename, OUTPUT_FILENAME_BUF_SIZE, "sensish_%s.png",
+                 filePath.stem().c_str());
         gfx.sourceTextureData =
             stbi_load(filePath.c_str(), &width, &height, &gfx.channels, 0);
         if (gfx.sourceTextureData) {
@@ -221,14 +225,22 @@ int main() {
         ImGui::ColorEdit4("Watermark color", wmColor);
         ImGui::InputInt("Letter height in pixels", &wmLetterHeight, 1, 5);
         // TODO font size
-        if (ImGui::Button("Apply")) {
+        if (ImGui::Button("Preview")) {
           applyWatermark(gfx, wmText, wmColor, wmLetterHeight);
         }
-        ImGui::SameLine();
         if (ImGui::Button("Save")) {
           applyWatermark(gfx, wmText, wmColor, wmLetterHeight);
-          stbi_write_png("output.png", width, height, gfx.channels,
+          stbi_write_png(outputFilename, width, height, gfx.channels,
                          gfx.workingTextureData, width * gfx.channels);
+        }
+        ImGui::SameLine();
+        ImGui::InputText("Ouput file", outputFilename,
+                         OUTPUT_FILENAME_BUF_SIZE);
+        ImGui::Separator();
+        if (ImGui::Button("Select another file")) {
+          filePath = "";
+          stbi_image_free(gfx.sourceTextureData);
+          gfx.sourceTextureData = nullptr;
         }
       }
       ImGui::End();
