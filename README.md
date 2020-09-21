@@ -15,6 +15,7 @@ Tool to add dense watermarks to images, made for [DemHack](https://demhack.ru/) 
  - [ ] select font file (only ttf fonts)
  - [x] integer input to change font size
  - [x] color picker to change color of the watermark
+ - [x] support transparency with dithering
 
 
 ## Project status

@@ -25,6 +25,7 @@
 // SOFTWARE.
 #include "text.h"
 
+#include <assert.h>
 #include <math.h>
 #include <stb.h>
 #include <stb_truetype.h>
@@ -143,13 +144,28 @@ void watermark_draw_text(unsigned char *texture, int width, int height,
   const unsigned char rChan = 0xFF * color[0];
   const unsigned char gChan = 0xFF * color[1];
   const unsigned char bChan = 0xFF * color[2];
-  for (size_t i = 0; i < pixel_count; ++i) {
-    if (bitmap[i]) {
-      size_t first = i * channels;
-      texture[first] = rChan;
-      texture[first + 1] = gChan;
-      texture[first + 2] = bChan;
+  if (color[3] == 1.0) { // 100% Opaque
+    for (size_t i = 0; i < pixel_count; ++i) {
+      if (bitmap[i]) {
+        size_t first = i * channels;
+        texture[first] = rChan;
+        texture[first + 1] = gChan;
+        texture[first + 2] = bChan;
+      }
     }
+  } else if (color[3] < 1.0) { // some transparency
+    stb_srandLCG(42);
+    for (size_t i = 0; i < pixel_count; ++i) {
+      if (bitmap[i] && stb_frandLCG() < color[3]) {
+        size_t first = i * channels;
+        texture[first] = rChan;
+        texture[first + 1] = gChan;
+        texture[first + 2] = bChan;
+      }
+    }
+
+  } else {
+    assert("Alpha color value is invalid " && false);
   }
 
   free(bitmap);

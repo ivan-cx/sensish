@@ -172,7 +172,7 @@ int main() {
   Graphics gfx;
 
   WatermarkText wmText;
-  float wmColor[4]{0.8, 0.1, 0.1, 1.0};
+  float wmColor[4]{0.8, 0.1, 0.1, 0.7};
   int wmLetterHeight = 64;
 #define OUTPUT_FILENAME_BUF_SIZE 1024
   char outputFilename[OUTPUT_FILENAME_BUF_SIZE] = {0};
