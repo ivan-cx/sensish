@@ -154,10 +154,9 @@ int main() {
   // literal you need to write a double backslash \\ !
   // io.Fonts->AddFontDefault();
   {
-    ImFontAtlas helper;
 #define FONT "./fonts/Roboto-Medium.ttf"
-    io.Fonts->AddFontFromFileTTF(FONT, 28.0f, NULL,
-                                 helper.GetGlyphRangesCyrillic());
+    static const ImWchar range_all_unicode[]{0x0020, 0xFFFF, 0};
+    io.Fonts->AddFontFromFileTTF(FONT, 28.0f, NULL, range_all_unicode);
     watermark_init_font(FONT);
   }
   // ImFont* font =
