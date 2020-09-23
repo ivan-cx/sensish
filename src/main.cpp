@@ -170,6 +170,8 @@ int main() {
   int width, height;
   Graphics gfx;
 
+#define TICKS_BEFORE_APPLY 30
+  int dirtyTicks = 0;
   WatermarkText wmText;
   float wmColor[4]{0.8, 0.1, 0.1, 0.7};
   int wmLetterHeight = 64;
@@ -218,16 +220,19 @@ int main() {
       }
       ImGui::End();
       if (ImGui::Begin("Process")) {
-        ImGui::InputText("Watermark Text #1", wmText.lines[0], TEXT_LINE_SIZE);
-        ImGui::InputText("Watermark Text #2", wmText.lines[1], TEXT_LINE_SIZE);
-        ImGui::InputText("Watermark Text #3", wmText.lines[2], TEXT_LINE_SIZE);
-        ImGui::ColorEdit4("Watermark color", wmColor);
-        ImGui::InputInt("Letter height in pixels", &wmLetterHeight, 1, 5);
-        // TODO font size
-        if (ImGui::Button("Preview")) {
-          applyWatermark(gfx, wmText, wmColor, wmLetterHeight);
-        }
+        bool settingChanged = false;
+        settingChanged |= ImGui::InputText("Watermark Text #1", wmText.lines[0],
+                                           TEXT_LINE_SIZE);
+        settingChanged |= ImGui::InputText("Watermark Text #2", wmText.lines[1],
+                                           TEXT_LINE_SIZE);
+        settingChanged |= ImGui::InputText("Watermark Text #3", wmText.lines[2],
+                                           TEXT_LINE_SIZE);
+        settingChanged |= ImGui::ColorEdit4("Watermark color", wmColor);
+        settingChanged |=
+            ImGui::InputInt("Letter height in pixels", &wmLetterHeight, 1, 5);
         if (ImGui::Button("Save")) {
+          dirtyTicks = 0;
+          settingChanged = false;
           applyWatermark(gfx, wmText, wmColor, wmLetterHeight);
           stbi_write_png(outputFilename, width, height, gfx.channels,
                          gfx.workingTextureData, width * gfx.channels);
@@ -237,11 +242,22 @@ int main() {
                          OUTPUT_FILENAME_BUF_SIZE);
         ImGui::Separator();
         if (ImGui::Button("Select another file")) {
+          dirtyTicks = 0;
+          settingChanged = false;
           filePath = "";
           stbi_image_free(gfx.sourceTextureData);
           gfx.sourceTextureData = nullptr;
         }
+        if (settingChanged) {
+          dirtyTicks = 1;
+        } else if (dirtyTicks >= TICKS_BEFORE_APPLY) {
+          applyWatermark(gfx, wmText, wmColor, wmLetterHeight);
+          dirtyTicks = 0;
+        } else if (dirtyTicks > 0) {
+          ++dirtyTicks;
+        }
       }
+
       ImGui::End();
     }
 
